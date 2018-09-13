@@ -57,6 +57,18 @@ trait Viewable
     }
 
     /**
+     * Get the total number of views by a tag.
+     *
+     * @param  \CyrildeWit\EloquentViewable\Support\Period
+     * @return int
+     */
+    public function getViewsByTag(string $tag, $period = null): int
+    {
+        return app(ViewableService::class)
+            ->getViewsCount($this, $period, false, $tag);
+    }
+
+    /**
      * Get the total number of unique views.
      *
      * @param  \CyrildeWit\EloquentViewable\Support\Period
@@ -73,9 +85,9 @@ trait Viewable
      *
      * @return bool
      */
-    public function addView(): bool
+    public function addView($tag = null): bool
     {
-        return app(ViewableService::class)->addViewTo($this);
+        return app(ViewableService::class)->addViewTo($this, $tag);
     }
 
     /**
@@ -100,29 +112,25 @@ trait Viewable
     }
 
     /**
-     * Retrieve records sorted by views count.
+     * Retrieve records sorted by views.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $direction
      * @return \Illuminate\Database\Eloquent\Builder
-     *
-     * @deprecated 3.0.0 Use new scopeOrderByViews()
      */
-    public function scopeOrderByViewsCount(Builder $query, string $direction = 'desc'): Builder
+    public function scopeOrderByViews(Builder $query, string $direction = 'desc'): Builder
     {
         return app(ViewableService::class)->applyScopeOrderByViewsCount($query, $direction);
     }
 
     /**
-     * Retrieve records sorted by views count.
+     * Retrieve records sorted by unqiue views.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $direction
      * @return \Illuminate\Database\Eloquent\Builder
-     *
-     * @deprecated 3.0.0 Use new scopeOrderByUniqueViews()
      */
-    public function scopeOrderByUniqueViewsCount(Builder $query, string $direction = 'desc'): Builder
+    public function scopeOrderByUniqueViews(Builder $query, string $direction = 'desc'): Builder
     {
         return app(ViewableService::class)->applyScopeOrderByViewsCount($query, $direction, true);
     }

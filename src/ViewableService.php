@@ -31,7 +31,7 @@ use CyrildeWit\EloquentViewable\Contracts\ViewableService as ViewableServiceCont
  *
  * @author Cyril de Wit <github@cyrildewit.nl>
  */
-class ViewableService implements ViewableServiceContract
+class ViewableService //implements ViewableServiceContract
 {
     /**
      * The cache repository instance.
@@ -83,7 +83,7 @@ class ViewableService implements ViewableServiceContract
      * @param  bool  $unique
      * @return int
      */
-    public function getViewsCount($viewable, $period = null, bool $unique = false)
+    public function getViewsCount($viewable, $period = null, bool $unique = false, $tag = null)
     {
         // Retrieve configuration
         $cachingEnabled = config('eloquent-viewable.cache.enabled', true);
@@ -105,7 +105,7 @@ class ViewableService implements ViewableServiceContract
         }
 
         // Count the views again
-        $viewsCount = $this->countViews($viewable, $period->getStartDateTime(), $period->getEndDateTime(), $unique);
+        $viewsCount = $this->countViews($viewable, $period->getStartDateTime(), $period->getEndDateTime(), $unique, $tag);
 
         // Cache the counted views
         if ($cachingEnabled) {
@@ -138,7 +138,7 @@ class ViewableService implements ViewableServiceContract
      * @param  bool  $unique
      * @return int
      */
-    public function countViews($viewable, $startDateTime = null, $endDateTime = null, bool $unique = false): int
+    public function countViews($viewable, $startDateTime = null, $endDateTime = null, bool $unique = false, $tag): int
     {
         // Create new Query Builder instance of the views relationship
         $query = $viewable->views();
@@ -151,6 +151,9 @@ class ViewableService implements ViewableServiceContract
         } elseif ($startDateTime && $endDateTime) {
             $query->whereBetween('viewed_at', [$startDateTime, $endDateTime]);
         }
+
+        // Filter by tag
+        $query->where('tag', $tag);
 
         // Count all the views
         if (! $unique) {
@@ -171,7 +174,7 @@ class ViewableService implements ViewableServiceContract
      * @param  \Illuminate\Database\Eloquent\Model  $viewable
      * @return bool
      */
-    public function addViewTo($viewable): bool
+    public function addViewTo($viewable, $tag): bool
     {
         $ignoreBots = config('eloquent-viewable.ignore_bots', true);
         $honorToDnt = config('eloquent-viewable.honor_dnt', false);
@@ -195,13 +198,23 @@ class ViewableService implements ViewableServiceContract
         }
 
         $visitorCookie = Cookie::get($cookieName);
-        $visitor = $visitorCookie ?? $this->ipRepository->get();
 
+<<<<<<< HEAD
         $view = app(ViewContract::class);
         $view->viewable_id = $viewable->getKey();
         $view->viewable_type = $viewable->getMorphClass();
         $view->visitor = $visitor;
         $view->viewed_at = Carbon::now();
+=======
+        // Create a new View model instance
+        $view = app(ViewContract::class)->create([
+            'viewable_id' => $viewable->getKey(),
+            'viewable_type' => $viewable->getMorphClass(),
+            'tag' => $tag,
+            'visitor' => $visitorCookie,
+            'viewed_at' => Carbon::now(),
+        ]);
+>>>>>>> feature/tags
 
         // If queuing is enabled, dispatch the job
         $configStoreNewView = config('eloquent-viewable.jobs.store_new_view');

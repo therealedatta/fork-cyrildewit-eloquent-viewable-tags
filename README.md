@@ -7,6 +7,8 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/cyrildewit/eloquent-viewable.svg?style=flat-square)](https://packagist.org/packages/cyrildewit/eloquent-viewable)
 [![license](https://img.shields.io/github/license/cyrildewit/eloquent-viewable.svg?style=flat-square)](https://github.com/cyrildewit/eloquent-viewable/blob/master/LICENSE.md)
 
+> **Note:** This is an unstable branch!
+
 This Laravel >= 5.5 package allows you to associate views with Eloquent models.
 
 Once installed you can do stuff like this:
@@ -33,7 +35,21 @@ $post->addView();
 
 ## Overview
 
-Eloquent Viewable is a powerful, flexible and easy to use Laravel package to associate views with Eloquent Models. It's designed to be fast, flexible, and useful for various projects.
+Eloquent Viewable is a flexible and easy to use Laravel package to associate views with Eloquent Models. It's designed for large and small projects. Instead of having a simple counter that increments by each view, this package will provide you a full history of the views.
+
+<!--
+Want to know how many people viewed this post on March 12, 2018?
+
+```php
+$post->getViews(Period::create(Carbon::parse('2018-03-12 00:00:00'), Carbon::parse('2018-03-13 00:00:00')));
+```
+
+Want to know how many unique views your post has?
+
+```php
+$post->getUniqueViews();
+```
+-->
 
 This package is not built with the intent to collect analytical data. It is made to simply store the views of a Laravel Eloquent model. You would this package for models like: Post, Video, Course and Hotel, but of course, you can use this package as you want.
 
@@ -55,7 +71,9 @@ Feature requests are very welcome! Create an issue with [Feature Request] as pre
 
 ## Documentation
 
-In this documentation, you will find some helpful information about the use of this Laravel package. If you have any questions about this package or if you discover any security-related issues, then feel free to get in touch with me at `github@cyrildewit.nl`.
+In this documentation, you will find some helpful information about the use of this Laravel package.
+
+<!--If you have any questions about this package or if you discover any security-related issues, then feel free to get in touch with me at `github@cyrildewit.nl`.-->
 
 ### Table of contents
 
@@ -65,10 +83,11 @@ In this documentation, you will find some helpful information about the use of t
 2. [Usage](#usage)
     * [Preparing your models](#preparing-your-models)
     * [Storing views](#storing-views)
-    * [Saving views with expiry date](#saving-views-with-expiry-date)
+    * [Storing views with expiry date](#storing-views-with-expiry-date)
+    * [Storing views under a tag](#storing-views-under-a-tag)
     * [Retrieving views counts](#retrieving-views-counts)
     * [Order models by views count](#order-models-by-views-count)
-    * [ViewTracker helper](#viewtracker-helper)
+    * [`Views` helper](#views-helper)
 3. [Configuration](#configuration)
     * [Queue the ProcessView job](#queue-the-processview-job)
     * [Extending](#extending)
@@ -87,8 +106,13 @@ Lumen is not supported!
 
 | Version | Illuminate | Status         | PHP Version |
 |---------|------------|----------------|-------------|
+<<<<<<< HEAD
 | 3.0     | 5.5 - 5.7  | _In Development_ | >= 7.1.0    |
 | 2.0     | 5.5 - 5.7  | Active support | >= 7.0.0    |
+=======
+| 3.0     | 5.5 - 5.6  | Active support | >= 7.0.0    |
+| 2.0     | 5.5 - 5.6  | Active support | >= 7.0.0    |
+>>>>>>> feature/tags
 | 1.0     | 5.5 - 5.6  | Bug fixes only | >= 7.0.0    |
 
 ### Installation
@@ -147,6 +171,7 @@ class Post extends Model
     // ...
 }
 ```
+
 <!--
 After adding the trait to your model definition,  -->
 
@@ -175,7 +200,7 @@ public function show(Post $post)
 
 **Note:** If you want to queue this job, you can turn this on in the configuration! See the [Queue the ProcessView job](#queue-the-processview-job) section!
 
-### Saving views with expiry date
+### Storing views with expiry date
 
 If you want to add a delay between views from the same session, you can use the available `addViewWithExpiryDate` on your viewable model.
 
@@ -184,6 +209,20 @@ $post->addViewWithExpiryDate(Carbon::now()->addHours(2));
 ```
 
 This method will add a new view to your model and it will add a record in the user's session. If you call this method multiple times, you will see that views count will not increment. After the current date time has passed the expiry date, a new view will be stored.
+
+### Storing views under a tag
+
+In some cases you might want to have multiple counters for a viewable model. This can be easily achieved by passing an additional argument to the `addView` method.
+
+```php
+$post->addView('customTag');
+```
+
+And with expiry date:
+
+```php
+$post->addViewWithExpiryDate(Carbon::now()->addHours(2), 'customTag')
+```
 
 ### Retrieving views counts
 
@@ -349,18 +388,86 @@ $sortedPosts = Post::orderByUniqueViewsCount()->get(); // desc
 $sortedPosts = Post::orderByUniqueViewsCount('asc')->get();
 ```
 
-### ViewTracker helper
+### `Views` helper
+
+#### Saving views
+
+```php
+use CyrildeWit\EloquentViewable\Views;
+
+Views::create($post)->addView();
+```
+
+#### Saving views with expiry date
+
+```php
+use CyrildeWit\EloquentViewable\Views;
+
+Views::create($post)->addViewWithExpiryDate(Carbon::now()->addHours(2));
+```
+
+#### Saving views under a tag
+
+```php
+use CyrildeWit\EloquentViewable\Views;
+
+// addView method
+Views::create($post)->addView('customTag');
+
+// addViewWithExpiryDate method
+Views::create($post)->addViewWithExpiryDate(Carbon::now()->addHours(2), 'customTag');
+```
+
+
+#### Retrieving views counts
+
+```php
+use CyrildeWit\EloquentViewable\Views;
+
+Views::create($post)->getViews();
+```
 
 #### Get views by viewable type
 
+To get the total number of views by a viewable type, you can use one of following methods.
+
 ```php
-use CyrildeWit\EloquentViewable\ViewTracker;
+use CyrildeWit\EloquentViewable\Views;
 
-// Get the total number of views of one type
-ViewTracker::getViewsCountByType(Post::class);
+Views::getViewsByType($post);
+Views::getViewsByType(Post::class);
+Views::getViewsByType('App\Post');
+```
 
-// Get the total number of views of multiple types
-ViewTracker::getViewsCountByTypes([Post::class, Location::class, Hotel::class]);
+#### Get most viewed viewables by type
+
+```php
+use CyrildeWit\EloquentViewable\Views;
+
+// Get top 10 most viewed by type
+Views::getMostViewedByType($post, 10);
+Views::getMostViewedByType(Post::class, 10);
+Views::getMostViewedByType('App\Post', 10);
+
+// Get top 10 lowest viewed by type
+Views::getLowestViewedByType($post, 10);
+Views::getLowestViewedByType(Post::class, 10);
+Views::getLowestViewedByType('App\Post', 10);
+```
+
+#### Get the views count of viewables per period
+
+Don't confuse this method with the `Period` class!
+
+```php
+use CyrildeWit\EloquentViewable\Views;
+
+Views::getViewsPerPeriod('minute', 30); // per 30 minutes
+Views::getViewsPerPeriod('hour', 12); // per 12 hours
+Views::getViewsPerPeriod('day'); // per day
+Views::getViewsPerPeriod('week', 2); // per 2 weeks
+Views::getViewsPerPeriod('month'); // per month
+Views::getViewsPerPeriod('year'); // per month
 ```
 
 ## Configuration

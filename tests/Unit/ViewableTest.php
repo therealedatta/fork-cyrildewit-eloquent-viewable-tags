@@ -311,7 +311,7 @@ class ViewableTest extends TestCase
     }
 
     /** @test */
-    public function applyScopeOrderByViewsCount_can_order_viewables_by_views_in_descending_order()
+    public function applyScopeOrderByViews_can_order_viewables_by_views_in_descending_order()
     {
         $postOne = factory(Post::class)->create();
         $postTwo = factory(Post::class)->create();
@@ -326,13 +326,13 @@ class ViewableTest extends TestCase
         $postThree->addView();
         $postThree->addView();
 
-        $posts = Post::orderByViewsCount()->pluck('id');
+        $posts = Post::orderByViews()->pluck('id');
 
         $this->assertEquals(collect([1, 3, 2]), $posts);
     }
 
     /** @test */
-    public function applyScopeOrderByViewsCount_can_order_viewables_by_views_in_ascending_order()
+    public function applyScopeOrderByViews_can_order_viewables_by_views_in_ascending_order()
     {
         $postOne = factory(Post::class)->create();
         $postTwo = factory(Post::class)->create();
@@ -347,13 +347,13 @@ class ViewableTest extends TestCase
         $postThree->addView();
         $postThree->addView();
 
-        $posts = Post::orderByViewsCount('asc')->pluck('id');
+        $posts = Post::orderByViews('asc')->pluck('id');
 
         $this->assertEquals(collect([2, 3, 1]), $posts);
     }
 
     /** @test */
-    public function applyScopeOrderByViewsCount_can_order_viewables_by_unique_views_in_descending_order()
+    public function applyScopeOrderByUniqueViews_can_order_viewables_by_unique_views_in_descending_order()
     {
         $postOne = factory(Post::class)->create();
         $postTwo = factory(Post::class)->create();
@@ -368,13 +368,13 @@ class ViewableTest extends TestCase
         TestHelper::createNewView($postThree, ['visitor' => 'visitor_one']);
         TestHelper::createNewView($postThree, ['visitor' => 'visitor_two']);
 
-        $posts = Post::orderByUniqueViewsCount()->pluck('id');
+        $posts = Post::orderByUniqueViews()->pluck('id');
 
         $this->assertEquals(collect([1, 3, 2]), $posts);
     }
 
     /** @test */
-    public function applyScopeOrderByViewsCount_can_order_viewables_by_unique_views_in_ascending_order()
+    public function applyScopeOrderByUniqueViews_can_order_viewables_by_unique_views_in_ascending_order()
     {
         $postOne = factory(Post::class)->create();
         $postTwo = factory(Post::class)->create();
@@ -389,7 +389,7 @@ class ViewableTest extends TestCase
         TestHelper::createNewView($postThree, ['visitor' => 'visitor_one']);
         TestHelper::createNewView($postThree, ['visitor' => 'visitor_two']);
 
-        $posts = Post::orderByUniqueViewsCount('asc')->pluck('id');
+        $posts = Post::orderByUniqueViews('asc')->pluck('id');
 
         $this->assertEquals(collect([2, 3, 1]), $posts);
     }
